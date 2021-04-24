@@ -11,11 +11,8 @@ body {
     background: linear-gradient(90deg, #69b7eb, #b3dbd3, #f4d6db);
     background-size: 100% 100%;
     -moz-background-size: 100%;
-    /* Firefox 3.6+ */
     -webkit-background-size: 100%;
-    /* Safari 3.1+ и Chrome 4.0+ */
     -o-background-size: 100%;
-    /* Opera 9.6+ */
 }
 
 #rez h2 {
@@ -80,7 +77,6 @@ input {
 }
 
 input::placeholder {
-    /* text-shadow: 1px 1px 2px black, 0 0 1em black; */
     text-align: center;
     color: rgba(255, 255, 255, 0.576);
 }
@@ -103,7 +99,6 @@ button {
     transition: 0.5s linear;
     background: rgba(201, 199, 199, 0.153);
     color: aliceblue;
-    //   text-shadow: 0.5px 0.5px 0.5px rgba(0, 0, 0, 0.5);
 }
 
 button:hover {
