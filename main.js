@@ -1,4 +1,5 @@
 const webdriver = require('selenium-webdriver');
+const { Options, Dimension } = require('selenium-webdriver/chrome');
 
 
 
@@ -6,7 +7,7 @@ async function getSiteElementsAndSaveScreenshot(url, fileName) {
     const builder = new webdriver.Builder();
     builder.forBrowser('chrome');
     const driver = builder.build();
-
+    driver.manage().window().setSize(new Dimension(1000, 1000));
     await driver.get(url);
     var data = driver.getPageSource().then(found => data = found).catch(error => console.log("error!"));
     var elements = []
@@ -46,7 +47,6 @@ async function main() {
     var url = 'https://time100.ru/'
     var screen = await makeDefaultScreenshot(url)
     setInterval(async() => await makeNowScreenshot(url), 4500)
-
 }
 
 main()
