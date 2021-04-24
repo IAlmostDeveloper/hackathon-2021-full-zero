@@ -1,32 +1,28 @@
-const webdriver = require('selenium-webdriver');
-const { Options, Dimension } = require('selenium-webdriver/chrome');
+const puppeteer = require("puppeteer");
 
+// we're using async/await - so we need an async function, that we can run
+const run = async(path, url) => {
+    // open the browser and prepare a page
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
 
+    // set the size of the viewport, so our screenshot will have the desired size
+    await page.setViewport({
+        width: 1920,
+        height: 3000
+    })
 
-async function getSiteElementsAndSaveScreenshot(url, fileName) {
-    const builder = new webdriver.Builder();
-    builder.forBrowser('chrome');
-    const driver = builder.build();
-    driver.manage().window().setSize(new Dimension(1000, 1000));
-    await driver.get(url);
-    var data = driver.getPageSource().then(found => data = found).catch(error => console.log("error!"));
-    var elements = []
-    await driver.findElements(webdriver.By.css("*")).then(found => elements = found);
-    (await driver).takeScreenshot().then(
-        function(image, err) {
-            require('fs').writeFile(fileName, image, 'base64', function(err) {
-                console.log(err);
-            });
-        })
-    await driver.quit();
-    return { elements: elements, rawHtml: data };
-}
+    await page.goto(url)
+    await page.screenshot({
+        path: path,
+        fullPage: true
+    })
 
-async function makeDefaultScreenshot(url) {
-    return makeScreenshot(url, "screenshots/default.png")
-}
+    // close the browser 
+    await browser.close();
+};
 
-async function makeNowScreenshot(url) {
+function getDateString() {
     var d = new Date()
     let ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
     let mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d);
@@ -35,18 +31,28 @@ async function makeNowScreenshot(url) {
     let mi = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(d);
     let se = new Intl.DateTimeFormat('en', { second: '2-digit' }).format(d);
 
-    return makeScreenshot(url, "screenshots/" + `${da}-${mo}-${ye}-${ho}-${mi}-${se}` + ".png")
+    return `${da}-${mo}-${ye}-${ho}-${mi}-${se}`
 }
 
-async function makeScreenshot(url, screenPath) {
-    var element = await getSiteElementsAndSaveScreenshot(url, screenPath).then(found => element = found);
-    return element
-}
 
 async function main() {
-    var url = 'https://time100.ru/'
-    var screen = await makeDefaultScreenshot(url)
-    setInterval(async() => await makeNowScreenshot(url), 4500)
+    // run the async function
+    var diffName = "screenshots/diff" + getDateString() + ".png"
+    var defaultName = 'screenshots/default.png'
+    await run(defaultName, 'https://vk.com/');
+    var screenshotName = 'screenshots/' + getDateString() + '.png'
+    await run(screenshotName, 'https://vk.com/');
+
+    const { imgDiff } = require("img-diff-js");
+
+    await imgDiff({
+        actualFilename: defaultName,
+        expectedFilename: screenshotName,
+        diffFilename: diffName,
+    }).then(result => console.log(result));
 }
+
+var myArgs = process.argv.slice(2);
+console.log('myArgs: ', myArgs);
 
 main()
