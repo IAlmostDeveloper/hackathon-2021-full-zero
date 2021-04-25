@@ -1,5 +1,4 @@
 const puppeteer = require("puppeteer");
-
 // we're using async/await - so we need an async function, that we can run
 const run = async(path, url) => {
     // open the browser and prepare a page
@@ -9,7 +8,7 @@ const run = async(path, url) => {
     // set the size of the viewport, so our screenshot will have the desired size
     await page.setViewport({
         width: 1920,
-        height: 3000
+        height: 1080
     })
 
     await page.goto(url)
@@ -35,24 +34,51 @@ function getDateString() {
 }
 
 
-async function main() {
-    // run the async function
-    var diffName = "screenshots/diff" + getDateString() + ".png"
-    var defaultName = 'screenshots/default.png'
-    await run(defaultName, 'https://vk.com/');
-    var screenshotName = 'screenshots/' + getDateString() + '.png'
-    await run(screenshotName, 'https://vk.com/');
+async function main(url, interval, screenshotsCount) {
+    if (!screenshotsCount) screenshotsCount = 5
+    if (!interval) interval = 5 * 1000
+    if (!url) {
+        console.log("Пожалуйста, укажите url сайта, который хотите мониторить")
+        return
+    }
 
-    const { imgDiff } = require("img-diff-js");
+    var previousScreenshotName = 'screenshots/' + getDateString() + '.png'
+    await run(previousScreenshotName, url);
+    for (let i = 0; i < screenshotsCount - 1; i++) {
+        setTimeout(async() => {
+            var diffScreenshotName = "screenshots/diff" + getDateString() + ".png"
+                // var defaultName = 'screenshots/default.png'
+                // await run(defaultName, url);
+            var currentScreenshotName = 'screenshots/' + getDateString() + '.png'
+            await run(currentScreenshotName, url);
 
-    await imgDiff({
-        actualFilename: defaultName,
-        expectedFilename: screenshotName,
-        diffFilename: diffName,
-    }).then(result => console.log(result));
+            const { imgDiff } = require("img-diff-js");
+
+            await imgDiff({
+                actualFilename: previousScreenshotName,
+                expectedFilename: currentScreenshotName,
+                diffFilename: diffScreenshotName,
+            }).then(result => {
+                console.log(result);
+                if (result.diffCount == 0) {
+                    console.log("no changes!");
+                    // delete diff and second screen
+                    const fs = require('fs')
+                    fs.unlink(currentScreenshotName, (error) => console.log(error))
+                    fs.unlink(diffScreenshotName, (error) => console.log(error))
+                } else
+                    previousScreenshotName = currentScreenshotName
+            });
+        }, interval * i * 1000);
+    }
 }
 
-var myArgs = process.argv.slice(2);
-console.log('myArgs: ', myArgs);
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers');
+const argv = yargs(hideBin(process.argv)).argv
 
-main()
+console.log(argv.url)
+console.log(argv.interval)
+console.log(argv.screenshotsCount)
+
+main(argv.url, argv.interval, argv.screenshotsCount)
