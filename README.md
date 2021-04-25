@@ -19,3 +19,15 @@ npm install
 
 ```node .\main.js --url https://vk.com --interval 5 --screenshots-count 5 --output archived_screenshots.zip``` 
 запустить скрипт для мониторинга изменений на сайте vk.com с интервалом 5 секунд, сделать 5 скриншотов для поиска изменений, положить скриншоты и изображения с различиями в архив archived_screenshots.zip
+
+
+### Пример сравнения
+
+Скриншот 1:
+![Скриншот 1](https://i.ibb.co/dWgbJh0/1.png)
+
+Скриншот 2:
+![Скриншот 2](https://i.ibb.co/CmFMLrD/2.png)
+
+Разница:
+![Различия](https://i.ibb.co/s5mzc3D/3.png)
