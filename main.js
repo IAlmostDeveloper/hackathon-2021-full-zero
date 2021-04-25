@@ -35,9 +35,10 @@ function delay(timeout) {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
 
-var diffLogger = fs.createWriteStream('screenshots/diff_info.txt', {
-    flags: 'a'
-})
+
+
+
+
 
 async function processLoop(url, interval, screenshotsCount, output) {
     if (!screenshotsCount) screenshotsCount = 5
@@ -75,14 +76,14 @@ async function processLoop(url, interval, screenshotsCount, output) {
 async function main(url, interval, screenshotsCount, output) {
     await processLoop(url, interval, screenshotsCount, output)
     diffLogger.end();
-    archive(output);
+    await archive(output);
 }
 
-function archive(output) {
+async function archive(output) {
     if (output) {
         var zipFolder = require('zip-folder');
 
-        zipFolder('screenshots', output, function(err) {
+        await zipFolder('screenshots', output, function(err) {
             if (err) {
                 console.log('oh no!', err);
             } else {
@@ -95,5 +96,17 @@ function archive(output) {
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers');
 const argv = yargs(hideBin(process.argv)).argv
+
+var screenshotsDir = __dirname + '/screenshots';
+var rimraf = require("rimraf");
+if (fs.existsSync(screenshotsDir))
+    rimraf.sync(screenshotsDir, {});
+fs.mkdirSync(screenshotsDir, 0755);
+
+var diffLogger = fs.createWriteStream('screenshots/diff_info.txt', {
+    flags: 'a'
+})
+
+
 
 main(argv.url, argv.interval, argv.screenshotsCount, argv.output)
