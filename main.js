@@ -20,7 +20,7 @@ const takeScreenshot = async(path, url) => {
 };
 
 function getDateString() {
-    var d = new Date()
+    let d = new Date()
     let ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
     let mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d);
     let da = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(d);
@@ -35,10 +35,6 @@ function delay(timeout) {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
 
-var diffLogger = fs.createWriteStream('screenshots/diff_info.txt', {
-    flags: 'a'
-})
-
 async function processLoop(url, interval, screenshotsCount, output) {
     if (!screenshotsCount) screenshotsCount = 5
     if (!interval) interval = 5 * 1000
@@ -50,10 +46,10 @@ async function processLoop(url, interval, screenshotsCount, output) {
 
     var previousScreenshotName = 'screenshots/' + getDateString() + '.png'
     await takeScreenshot(previousScreenshotName, url);
-    for (var i = 0; i < screenshotsCount - 1; i++) {
+    for (let i = 0; i < screenshotsCount - 1; i++) {
         await delay(1000 * interval)
-        var diffScreenshotName = "screenshots/diff" + getDateString() + ".png"
-        var currentScreenshotName = 'screenshots/' + getDateString() + '.png'
+        let diffScreenshotName = "screenshots/diff" + getDateString() + ".png"
+        let currentScreenshotName = 'screenshots/' + getDateString() + '.png'
         await takeScreenshot(currentScreenshotName, url);
         await imgDiff({
             actualFilename: previousScreenshotName,
@@ -75,14 +71,14 @@ async function processLoop(url, interval, screenshotsCount, output) {
 async function main(url, interval, screenshotsCount, output) {
     await processLoop(url, interval, screenshotsCount, output)
     diffLogger.end();
-    archive(output);
+    await archive(output);
 }
 
-function archive(output) {
+async function archive(output) {
     if (output) {
-        var zipFolder = require('zip-folder');
+        let zipFolder = require('zip-folder');
 
-        zipFolder('screenshots', output, function(err) {
+        await zipFolder('screenshots', output, function(err) {
             if (err) {
                 console.log('oh no!', err);
             } else {
@@ -95,5 +91,17 @@ function archive(output) {
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers');
 const argv = yargs(hideBin(process.argv)).argv
+
+let screenshotsDir = __dirname + '/screenshots';
+let rimraf = require("rimraf");
+if (fs.existsSync(screenshotsDir))
+    rimraf.sync(screenshotsDir, {});
+fs.mkdirSync(screenshotsDir, 0755);
+
+var diffLogger = fs.createWriteStream('screenshots/diff_info.txt', {
+    flags: 'a'
+})
+
+
 
 main(argv.url, argv.interval, argv.screenshotsCount, argv.output)
